@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diabetic Health & Sugar Tracker</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#059669',
+                        danger: '#DC2626',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen pb-12">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+        <div class="max-w-md mx-auto px-4 py-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold text-slate-900">GlucoCare Dashboard</h1>
+                <p class="text-xs text-slate-500">Daily Health & Compliance Tracker</p>
+            </div>
+            <div id="statusBadge" class="px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 bg-emerald-100 text-emerald-800">
+                <span id="statusDot" class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+                <span id="statusText">Doing Well</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container (Mobile First Width) -->
+    <main class="max-w-md mx-auto px-4 mt-6 space-y-6">
+
+        <!-- Health Trend Chart Section -->
+        <section class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500">Overall Health Trend</h2>
+                <span id="trendLabel" class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">Trending Up (Good)</span>
+            </div>
+            
+            <!-- Dynamic SVG Chart Container -->
+            <div class="h-36 w-full flex items-end justify-center relative bg-slate-50 rounded-xl p-2 overflow-hidden">
+                <svg id="trendSvg" class="w-full h-full overflow-visible" viewBox="0 0 300 100" preserveAspectRatio="none">
+                    <!-- Dynamic Polyline populated by JavaScript -->
+                    <polyline id="chartLine" fill="none" stroke="#059669" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" points="0,80 75,60 150,45 225,30 300,15"/>
+                </svg>
+            </div>
+            <p id="chartDescription" class="text-xs text-slate-500 text-center mt-3">
+                Your checks and sugar levels are stable. Keep up the great work!
+            </p>
+        </section>
+
+        <!-- Quick Upload & Action Buttons -->
+        <section class="grid grid-cols-2 gap-3">
+            <button onclick="openModal()" class="bg-primary hover:bg-emerald-700 text-white font-medium p-4 rounded-xl shadow-md transition flex flex-col items-center justify-center gap-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span class="text-sm">Log Sugar Result</span>
+            </button>
+            <button onclick="toggleMedication()" id="medButton" class="bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-medium p-4 rounded-xl transition flex flex-col items-center justify-center gap-2">
+                <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span id="medButtonText" class="text-sm">Take Medication</span>
+            </button>
+        </section>
+
+        <!-- Daily Status Summary -->
+        <section class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-4">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500">Today's Checklist</h2>
+            
+            <div class="space-y-3">
+                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                    <div class="flex items-center gap-3">
+                        <div id="checkStatusIcon" class="w-3 h-3 rounded-full bg-amber-500"></div>
+                        <div>
+                            <p class="text-sm font-medium text-slate-800">Blood Sugar Check</p>
+                            <p class="text-xs text-slate-400">Next window: Pending upload</p>
+                        </div>
+                    </div>
+                    <span id="lastReadingText" class="text-xs font-semibold text-slate-600">No log yet</span>
+                </div>
+
+                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                    <div class="flex items-center gap-3">
+                        <div id="medStatusIcon" class="w-3 h-3 rounded-full bg-slate-300"></div>
+                        <div>
+                            <p class="text-sm font-medium text-slate-800">Metformin 500mg</p>
+                            <p class="text-xs text-slate-400">Scheduled: 8:00 AM & 8:00 PM</p>
+                        </div>
+                    </div>
+                    <span id="medStatusText" class="text-xs font-semibold text-slate-500">Pending</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recommended Foods Preview -->
+        <section class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-3">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500">Suggested Foods Today</h2>
+            <div class="grid grid-cols-3 gap-2 text-center">
+                <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                    <p class="text-xl mb-1">🥑</p>
+                    <p class="text-xs font-medium text-emerald-900">Avocado & Eggs</p>
+                </div>
+                <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                    <p class="text-xl mb-1">🐟</p>
+                    <p class="text-xs font-medium text-emerald-900">Grilled Salmon</p>
+                </div>
+                <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                    <p class="text-xl mb-1">🥦</p>
+                    <p class="text-xs font-medium text-emerald-900">Steamed Greens</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Upload Sugar Result Modal -->
+    <div id="sugarModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-sm rounded-2xl p-6 space-y-4 shadow-xl">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-lg text-slate-900">Upload Sugar Reading</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Blood Glucose Level (mg/dL)</label>
+                <input type="number" id="glucoseInput" placeholder="e.g., 110" class="w-full border border-slate-300 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-lg">
+            </div>
+            <button onclick="submitGlucose()" class="w-full bg-primary hover:bg-emerald-700 text-white font-medium p-3 rounded-xl transition">
+                Submit Reading
+            </button>
+        </div>
+    </div>
+
+    <!-- Emergency High Sugar Alert Modal -->
+    <div id="alertModal" class="fixed inset-0 bg-red-950/80 backdrop-blur-md hidden items-center justify-center p-4 z-50 animate-pulse">
+        <div class="bg-white w-full max-w-sm rounded-2xl p-6 space-y-4 shadow-2xl border-4 border-danger text-center">
+            <div class="w-16 h-16 bg-red-100 text-danger rounded-full flex items-center justify-center mx-auto text-3xl">
+                ⚠️
+            </div>
+            <h3 class="font-bold text-xl text-danger">CRITICAL SUGAR LEVEL DETECTED!</h3>
+            <p class="text-sm text-slate-600">
+                Your reading is significantly higher than safe thresholds. Please contact your sugar doctor or visit the nearest clinic immediately.
+            </p>
+            <button onclick="closeAlert()" class="w-full bg-danger hover:bg-red-700 text-white font-bold p-3 rounded-xl transition">
+                I Understand / Calling Doctor
+            </button>
+        </div>
+    </div>
+
+    <!-- Dashboard Logic Script -->
+    <script>
+        let isDoingWell = true;
+        let medTaken = false;
+
+        function openModal() {
+            document.getElementById('sugarModal').classList.remove('hidden');
+            document.getElementById('sugarModal').classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('sugarModal').classList.add('hidden');
+            document.getElementById('sugarModal').classList.remove('flex');
+        }
+
+        function closeAlert() {
+            document.getElementById('alertModal').classList.add('hidden');
+            document.getElementById('alertModal').classList.remove('flex');
+        }
+
+        function toggleMedication() {
+            medTaken = !medTaken;
+            const btn = document.getElementById('medButton');
+            const txt = document.getElementById('medButtonText');
+            const icon = document.getElementById('medStatusIcon');
+            const statusTxt = document.getElementById('medStatusText');
+
+            if (medTaken) {
+                btn.classList.add('border-primary', 'bg-emerald-50');
+                txt.textContent = 'Medication Taken';
+                icon.className = 'w-3 h-3 rounded-full bg-primary';
+                statusTxt.textContent = 'Completed';
+                statusTxt.className = 'text-xs font-semibold text-primary';
+            } else {
+                btn.classList.remove('border-primary', 'bg-emerald-50');
+                txt.textContent = 'Take Medication';
+                icon.className = 'w-3 h-3 rounded-full bg-slate-300';
+                statusTxt.textContent = 'Pending';
+                statusTxt.className = 'text-xs font-semibold text-slate-500';
+            }
+        }
+
+        function submitGlucose() {
+            const val = parseFloat(document.getElementById('glucoseInput').value);
+            if (!val) return;
+
+            closeModal();
+            document.getElementById('lastReadingText').textContent = val + ' mg/dL';
+            document.getElementById('checkStatusIcon').className = 'w-3 h-3 rounded-full bg-primary';
+
+            // Check if sugar level is too high (e.g., > 200 mg/dL)
+            if (val > 200) {
+                triggerBadState();
+                document.getElementById('alertModal').classList.remove('hidden');
+                document.getElementById('alertModal').classList.add('flex');
+            } else {
+                triggerGoodState();
+            }
+        }
+
+        function triggerGoodState() {
+            isDoingWell = true;
+            // Update Top Badge
+            document.getElementById('statusBadge').className = 'px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 bg-emerald-100 text-emerald-800';
+            document.getElementById('statusDot').className = 'w-2 h-2 rounded-full bg-emerald-600 animate-pulse';
+            document.getElementById('statusText').textContent = 'Doing Well';
+
+            // Update Chart & Trend
+            document.getElementById('trendLabel').textContent = 'Trending Up (Good)';
+            document.getElementById('trendLabel').className = 'text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded';
+            document.getElementById('chartLine').setAttribute('stroke', '#059669');
+            document.getElementById('chartLine').setAttribute('points', '0,80 75,60 150,45 225,30 300,15');
+            document.getElementById('chartDescription').textContent = 'Your checks and sugar levels are stable. Keep up the great work!';
+        }
+
+        function triggerBadState() {
+            isDoingWell = false;
+            // Update Top Badge
+            document.getElementById('statusBadge').className = 'px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 bg-red-100 text-red-800';
+            document.getElementById('statusDot').className = 'w-2 h-2 rounded-full bg-danger animate-pulse';
+            document.getElementById('statusText').textContent = 'Needs Attention';
+
+            // Update Chart & Trend (Red chart going down)
+            document.getElementById('trendLabel').textContent = 'Trending Down (Warning)';
+            document.getElementById('trendLabel').className = 'text-xs font-bold text-danger bg-red-50 px-2 py-0.5 rounded';
+            document.getElementById('chartLine').setAttribute('stroke', '#DC2626');
+            document.getElementById('chartLine').setAttribute('points', '0,20 75,35 150,55 225,70 300,85');
+            document.getElementById('chartDescription').textContent = 'Warning: Recent readings or missed checks indicate instability. Consult your doctor.';
+        }
+    </script>
+</body>
+</html>
